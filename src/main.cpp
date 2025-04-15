@@ -2,8 +2,118 @@
 #include <glfw/glfw3.h>
 #include <stdio.h>
 
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+#define Assert(condition, message, ...) \
+    do { \
+        if (!(condition)) { \
+            fprintf(stderr, "Assertion failed at %s:%d: " message "\n", \
+                    __FILE__, __LINE__, ##__VA_ARGS__); \
+            exit(EXIT_FAILURE); \
+        } \
+    } while (0)
+
 void error_callback_glfw(int error, const char* description) {
   fprintf( stderr, "GLFW ERROR: code %i msg: %s.\n", error, description );
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void processInput(GLFWwindow *window)
+{
+    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+unsigned int CreateShaderProgram(const std::string vertexPath, const std::string fragmentPath){
+  std::string shaderFolderPath = "../assets/shaders/";
+
+  std::string vertexCode, fragmentCode, geometryCode;
+  std::stringstream vShaderStream, fShaderStream, gShaderStream;
+  std::ifstream vShaderFile(shaderFolderPath + vertexPath),
+                fShaderFile(shaderFolderPath + fragmentPath);
+
+  //check if everything OK   
+  Assert(vShaderFile.good(), "Couldn't find vertex shader file: %s in shaders folder.\n", vertexPath.c_str());
+  Assert(fShaderFile.good(), "Couldn't find fragment shader file: %s in shaders folder.\n", fragmentPath.c_str());             
+
+  //proceed creating shader
+  vShaderStream << vShaderFile.rdbuf();    
+  fShaderStream << fShaderFile.rdbuf();
+
+  vShaderFile.close();
+  fShaderFile.close();
+
+  vertexCode = vShaderStream.str();
+  fragmentCode = fShaderStream.str();
+
+  const char* vShaderCode = vertexCode.c_str();
+  const char* fShaderCode = fragmentCode.c_str();
+
+  // create VS shader
+  GLuint vs = glCreateShader( GL_VERTEX_SHADER );
+  glShaderSource( vs, 1, &vShaderCode, NULL );
+  glCompileShader( vs );
+
+  // After glCompileShader check for errors.
+  int params = -1;
+  glGetShaderiv( vs, GL_COMPILE_STATUS, &params );
+
+  // On error, capture the log and print it.
+  if ( GL_TRUE != params ) {
+    int max_length    = 2048, actual_length = 0;
+    char slog[2048];
+    glGetShaderInfoLog( vs, max_length, &actual_length, slog );
+    fprintf( stderr, "ERROR: Shader index %u did not compile.\n%s\n", vs, slog );
+    return 1;
+  }
+
+  //create FS Shader
+  GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
+  glShaderSource( fs, 1, &fShaderCode, NULL );
+  glCompileShader( fs );
+
+  // After glCompileShader check for errors.
+  //int params = -1;
+  glGetShaderiv( fs, GL_COMPILE_STATUS, &params );
+
+  // On error, capture the log and print it.
+  if ( GL_TRUE != params ) {
+    int max_length    = 2048, actual_length = 0;
+    char slog[2048];
+    glGetShaderInfoLog( vs, max_length, &actual_length, slog );
+    fprintf( stderr, "ERROR: Shader index %u did not compile.\n%s\n", fs, slog );
+    return 1;
+  }
+
+  // create shader program
+  unsigned int shader_program = glCreateProgram();
+  glAttachShader( shader_program, fs );
+  glAttachShader( shader_program, vs );
+  glLinkProgram( shader_program );
+
+  // Check for linking errors:
+  glGetProgramiv( shader_program, GL_LINK_STATUS, &params );
+
+  // Print the linking log:
+  if ( GL_TRUE != params ) {    
+    int max_length    = 2048, actual_length = 0;
+    char plog[2048];
+    glGetProgramInfoLog( shader_program, max_length, &actual_length, plog );
+    fprintf( stderr, "ERROR: Could not link shader program GL index %u.\n%s\n", shader_program, plog );
+    return 1;
+  }
+
+  glDeleteShader(fs);
+  glDeleteShader(vs);
+
+  return shader_program;
 }
 
 int main( void ) {
@@ -55,6 +165,7 @@ int main( void ) {
     return 1;
   }
   glfwMakeContextCurrent( window );
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
                                   
   // Start Glad, so we can call OpenGL functions.
   int version_glad = gladLoadGL( glfwGetProcAddress );
@@ -69,15 +180,21 @@ int main( void ) {
   printf( "OpenGL version supported %s.\n", glGetString( GL_VERSION ) );
 
   float points[] = {
-    0.0f,  0.5f,  0.0f,
-    0.5f, -0.5f,  0.0f,
-   -0.5f, -0.5f,  0.0f
+    0.5f,  0.5f, 0.0f,  // top right
+    0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left 
   };
+
+  unsigned int indices[] = {  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
+  }; 
 
   GLuint vbo = 0;
   glGenBuffers( 1, &vbo );
   glBindBuffer( GL_ARRAY_BUFFER, vbo );
-  glBufferData( GL_ARRAY_BUFFER, 9 * sizeof( float ), points, GL_STATIC_DRAW );
+  glBufferData( GL_ARRAY_BUFFER, 12 * sizeof( float ), points, GL_STATIC_DRAW );
   
   GLuint vao = 0;
   glGenVertexArrays( 1, &vao );
@@ -86,76 +203,16 @@ int main( void ) {
   glBindBuffer( GL_ARRAY_BUFFER, vbo );
   glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
 
+  unsigned int EBO;
+  glGenBuffers(1, &EBO);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
+
   //glDeleteVertexArrays( 1, &vao );
   //glDeleteBuffers( 1, &vbo );
 
-  const char* vertex_shader =
-  "#version 410 core\n"
-  "in vec3 vp;"
-  "void main() {"
-  "  gl_Position = vec4( vp, 1.0 );"
-  "}";
-
-  const char* fragment_shader =
-  "#version 410 core\n"
-  "out vec4 frag_colour;"
-  "void main() {"
-  "  frag_colour = vec4( 0.5, 0.0, 0.5, 1.0 );"
-  "}";
-
-  GLuint vs = glCreateShader( GL_VERTEX_SHADER );
-  glShaderSource( vs, 1, &vertex_shader, NULL );
-  glCompileShader( vs );
-
-  // After glCompileShader check for errors.
-  int params = -1;
-  glGetShaderiv( vs, GL_COMPILE_STATUS, &params );
-
-  // On error, capture the log and print it.
-  if ( GL_TRUE != params ) {
-    int max_length    = 2048, actual_length = 0;
-    char slog[2048];
-    glGetShaderInfoLog( vs, max_length, &actual_length, slog );
-    fprintf( stderr, "ERROR: Shader index %u did not compile.\n%s\n", vs, slog );
-    return 1;
-  }
-
-  GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
-  glShaderSource( fs, 1, &fragment_shader, NULL );
-  glCompileShader( fs );
-
-  // After glCompileShader check for errors.
-  //int params = -1;
-  glGetShaderiv( fs, GL_COMPILE_STATUS, &params );
-
-  // On error, capture the log and print it.
-  if ( GL_TRUE != params ) {
-    int max_length    = 2048, actual_length = 0;
-    char slog[2048];
-    glGetShaderInfoLog( vs, max_length, &actual_length, slog );
-    fprintf( stderr, "ERROR: Shader index %u did not compile.\n%s\n", fs, slog );
-    return 1;
-  }
-
-  GLuint shader_program = glCreateProgram();
-  glAttachShader( shader_program, fs );
-  glAttachShader( shader_program, vs );
-  glLinkProgram( shader_program );
-
-  // Check for linking errors:
-  glGetProgramiv( shader_program, GL_LINK_STATUS, &params );
-
-  // Print the linking log:
-  if ( GL_TRUE != params ) {    
-    int max_length    = 2048, actual_length = 0;
-    char plog[2048];
-    glGetProgramInfoLog( shader_program, max_length, &actual_length, plog );
-    fprintf( stderr, "ERROR: Could not link shader program GL index %u.\n%s\n", shader_program, plog );
-    return 1;
-  }
-
-  glDeleteShader(fs);
-  glDeleteShader(vs);
+  unsigned int shader_program = CreateShaderProgram("triangle.vert","triangle.frag");
 
   double prev_s = glfwGetTime();  // Set the initial 'previous time'.
   double title_countdown_s = 0.2;
@@ -165,11 +222,7 @@ int main( void ) {
   while ( !glfwWindowShouldClose( window ) ) {
     glfwPollEvents(); // Update window events.
 
-    if (GLFW_PRESS == glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-      glfwSetWindowShouldClose(window, 1);
-    }
-
-    
+    processInput(window);
     
     double curr_s     = glfwGetTime();   // Get the current time.
 	  double elapsed_s  = curr_s - prev_s; // Work out the time elapsed over the last frame.
@@ -189,19 +242,22 @@ int main( void ) {
 
 
     // Check if the window resized.
-    glfwGetWindowSize( window, &win_w, &win_h );
+    //glfwGetWindowSize( window, &win_w, &win_h );
     // Update the viewport (drawing area) to fill the window dimensions.
-		glViewport( 0, 0, win_w, win_h );
+		//glViewport( 0, 0, win_w, win_h );
 
     // Wipe the drawing surface clear.
-    glClearColor( 0.6f, 0.6f, 0.8f, 1.0f );
+    glClearColor( 0.2f, 0.3f, 0.3f, 1.0f);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     glUseProgram( shader_program );
+    
     glBindVertexArray( vao );
-
-    glDrawArrays( GL_TRIANGLES, 0, 3 );
-
+    //glDrawArrays( GL_TRIANGLES, 0, 3 );
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // draw in wireframe mode
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // dram  filled
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //glBindVertexArray(0);
     // Put the stuff we've been drawing onto the visible area.
     glfwSwapBuffers( window );
   }

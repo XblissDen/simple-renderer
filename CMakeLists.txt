@@ -26,8 +26,18 @@ find_package(OpenGL)
 include_directories( ${CMAKE_SOURCE_DIR}/libs/glad/include )
 include_directories( ${CMAKE_SOURCE_DIR}/libs/glfw/include )
 include_directories( ${CMAKE_SOURCE_DIR}/libs )
+include_directories( ${CMAKE_SOURCE_DIR}/include )
 
-add_executable(${PROJECT_NAME} src/main.cpp libs/glad/src/gl.c)
+set(SOURCES
+    src/main.cpp
+    libs/glad/src/gl.c
+)
+
+set(HEADERS
+    include/shader.h
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3dll.lib OpenGL::GL)
 
 target_include_directories(Tutorial PUBLIC "${PROJECT_BINARY_DIR}")

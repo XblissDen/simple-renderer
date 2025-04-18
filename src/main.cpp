@@ -2,6 +2,8 @@
 #include <glfw/glfw3.h>
 #include <stdio.h>
 
+#include <shader.h>
+
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -29,91 +31,6 @@ void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-}
-
-unsigned int CreateShaderProgram(const std::string vertexPath, const std::string fragmentPath){
-  std::string shaderFolderPath = "../assets/shaders/";
-
-  std::string vertexCode, fragmentCode, geometryCode;
-  std::stringstream vShaderStream, fShaderStream, gShaderStream;
-  std::ifstream vShaderFile(shaderFolderPath + vertexPath),
-                fShaderFile(shaderFolderPath + fragmentPath);
-
-  //check if everything OK   
-  Assert(vShaderFile.good(), "Couldn't find vertex shader file: %s in shaders folder.\n", vertexPath.c_str());
-  Assert(fShaderFile.good(), "Couldn't find fragment shader file: %s in shaders folder.\n", fragmentPath.c_str());             
-
-  //proceed creating shader
-  vShaderStream << vShaderFile.rdbuf();    
-  fShaderStream << fShaderFile.rdbuf();
-
-  vShaderFile.close();
-  fShaderFile.close();
-
-  vertexCode = vShaderStream.str();
-  fragmentCode = fShaderStream.str();
-
-  const char* vShaderCode = vertexCode.c_str();
-  const char* fShaderCode = fragmentCode.c_str();
-
-  // create VS shader
-  GLuint vs = glCreateShader( GL_VERTEX_SHADER );
-  glShaderSource( vs, 1, &vShaderCode, NULL );
-  glCompileShader( vs );
-
-  // After glCompileShader check for errors.
-  int params = -1;
-  glGetShaderiv( vs, GL_COMPILE_STATUS, &params );
-
-  // On error, capture the log and print it.
-  if ( GL_TRUE != params ) {
-    int max_length    = 2048, actual_length = 0;
-    char slog[2048];
-    glGetShaderInfoLog( vs, max_length, &actual_length, slog );
-    fprintf( stderr, "ERROR: Shader index %u did not compile.\n%s\n", vs, slog );
-    return 1;
-  }
-
-  //create FS Shader
-  GLuint fs = glCreateShader( GL_FRAGMENT_SHADER );
-  glShaderSource( fs, 1, &fShaderCode, NULL );
-  glCompileShader( fs );
-
-  // After glCompileShader check for errors.
-  //int params = -1;
-  glGetShaderiv( fs, GL_COMPILE_STATUS, &params );
-
-  // On error, capture the log and print it.
-  if ( GL_TRUE != params ) {
-    int max_length    = 2048, actual_length = 0;
-    char slog[2048];
-    glGetShaderInfoLog( vs, max_length, &actual_length, slog );
-    fprintf( stderr, "ERROR: Shader index %u did not compile.\n%s\n", fs, slog );
-    return 1;
-  }
-
-  // create shader program
-  unsigned int shader_program = glCreateProgram();
-  glAttachShader( shader_program, fs );
-  glAttachShader( shader_program, vs );
-  glLinkProgram( shader_program );
-
-  // Check for linking errors:
-  glGetProgramiv( shader_program, GL_LINK_STATUS, &params );
-
-  // Print the linking log:
-  if ( GL_TRUE != params ) {    
-    int max_length    = 2048, actual_length = 0;
-    char plog[2048];
-    glGetProgramInfoLog( shader_program, max_length, &actual_length, plog );
-    fprintf( stderr, "ERROR: Could not link shader program GL index %u.\n%s\n", shader_program, plog );
-    return 1;
-  }
-
-  glDeleteShader(fs);
-  glDeleteShader(vs);
-
-  return shader_program;
 }
 
 int main( void ) {
@@ -180,10 +97,10 @@ int main( void ) {
   printf( "OpenGL version supported %s.\n", glGetString( GL_VERSION ) );
 
   float points[] = {
-    0.5f,  0.5f, 0.0f,  // top right
-    0.5f, -0.5f, 0.0f,  // bottom right
-    -0.5f, -0.5f, 0.0f,  // bottom left
-    -0.5f,  0.5f, 0.0f   // top left 
+    // positions         // colors
+    0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
+     0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
   };
 
   unsigned int indices[] = {  // note that we start from 0!
@@ -194,29 +111,36 @@ int main( void ) {
   GLuint vbo = 0;
   glGenBuffers( 1, &vbo );
   glBindBuffer( GL_ARRAY_BUFFER, vbo );
-  glBufferData( GL_ARRAY_BUFFER, 12 * sizeof( float ), points, GL_STATIC_DRAW );
+  glBufferData( GL_ARRAY_BUFFER, sizeof( points ), points, GL_STATIC_DRAW );
   
   GLuint vao = 0;
   glGenVertexArrays( 1, &vao );
-  glBindVertexArray( vao );
-  glEnableVertexAttribArray( 0 );
+  glBindVertexArray( vao ); 
   glBindBuffer( GL_ARRAY_BUFFER, vbo );
-  glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL );
+  
+  // position attribute
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  // color attribute
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+  glEnableVertexAttribArray(1);
 
-  unsigned int EBO;
+  /*unsigned int EBO;
   glGenBuffers(1, &EBO);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); */
 
   //glDeleteVertexArrays( 1, &vao );
   //glDeleteBuffers( 1, &vbo );
 
-  unsigned int shader_program = CreateShaderProgram("triangle.vert","triangle.frag");
+  Shader shader_program("triangle.vert", "triangle.frag");
 
   double prev_s = glfwGetTime();  // Set the initial 'previous time'.
   double title_countdown_s = 0.2;
-
+  //int nrAttributes;
+  //glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+  //std::cout << "Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
   //glfwSwapInterval( 1 );
 
   while ( !glfwWindowShouldClose( window ) ) {
@@ -250,13 +174,13 @@ int main( void ) {
     glClearColor( 0.2f, 0.3f, 0.3f, 1.0f);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-    glUseProgram( shader_program );
+    shader_program.use();
     
     glBindVertexArray( vao );
-    //glDrawArrays( GL_TRIANGLES, 0, 3 );
+    glDrawArrays( GL_TRIANGLES, 0, 3 );
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // draw in wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // dram  filled
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     //glBindVertexArray(0);
     // Put the stuff we've been drawing onto the visible area.
     glfwSwapBuffers( window );

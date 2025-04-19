@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(Tutorial VERSION 1.0)
+project(SimpleRenderer VERSION 1.0)
 set(OpenGL_GL_PREFERENCE "GLVND")
 
 set(CMAKE_CXX_STANDARD 17)
@@ -40,7 +40,7 @@ set(HEADERS
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3dll.lib OpenGL::GL)
 
-target_include_directories(Tutorial PUBLIC "${PROJECT_BINARY_DIR}")
+target_include_directories(SimpleRenderer PUBLIC "${PROJECT_BINARY_DIR}")
 
 add_custom_command(
             TARGET ${PROJECT_NAME} POST_BUILD

@@ -9,6 +9,10 @@
 #include <iostream>
 #include <sstream>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -195,7 +199,7 @@ int main( void ) {
   shader_program.use();
   shader_program.setInt("texture1", 0);
   shader_program.setInt("texture2", 1);
-
+  
   while ( !glfwWindowShouldClose( window ) ) {
     processInput(window);
     
@@ -230,6 +234,15 @@ int main( void ) {
     glBindTexture(GL_TEXTURE_2D, texture1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
+
+    //transformantiob
+    glm::mat4 trans = glm::mat4(1.0f);
+    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+    trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+    
+    shader_program.use();
+    unsigned int transformLoc = glGetUniformLocation(shader_program.ID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
     //glDrawArrays( GL_TRIANGLES, 0, 3 );
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // draw in wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // dram  filled

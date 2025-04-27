@@ -1,13 +1,11 @@
-#include <glad/gl.h>
-#include <glfw/glfw3.h>
-#include <stdio.h>
-
-#include <shader.h>
-
 #include <string>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdio.h>
+
+#include <glad/gl.h>
+#include <glfw/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,6 +13,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include <shader.h>
 
 #define Assert(condition, message, ...) \
     do { \
@@ -103,14 +103,56 @@ int main( void ) {
   printf( "Renderer: %s.\n", glGetString( GL_RENDERER ) );
   printf( "OpenGL version supported %s.\n", glGetString( GL_VERSION ) );
 
-  float points[] = {
+  /*float points[] = {
     // positions          // colors           // texture coords
     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-  };
+  };*/
+  float points[] = {
+      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+      -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+      -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+  };
   unsigned int indices[] = {  // note that we start from 0!
     0, 1, 3,   // first triangle
     1, 2, 3    // second triangle
@@ -127,14 +169,14 @@ int main( void ) {
   glBindBuffer( GL_ARRAY_BUFFER, vbo );
   
   // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
   // color attribute
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
-  glEnableVertexAttribArray(1);
+  //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
+  //glEnableVertexAttribArray(1);
   // texture coord attribute
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-  glEnableVertexAttribArray(2);  
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);  
 
   unsigned int ebo;
   glGenBuffers(1, &ebo);
@@ -199,7 +241,21 @@ int main( void ) {
   shader_program.use();
   shader_program.setInt("texture1", 0);
   shader_program.setInt("texture2", 1);
-  
+  glEnable(GL_DEPTH_TEST); 
+
+  glm::vec3 cubePositions[] = {
+      glm::vec3( 0.0f,  0.0f,  0.0f), 
+      glm::vec3( 2.0f,  5.0f, -15.0f), 
+      glm::vec3(-1.5f, -2.2f, -2.5f),  
+      glm::vec3(-3.8f, -2.0f, -12.3f),  
+      glm::vec3( 2.4f, -0.4f, -3.5f),  
+      glm::vec3(-1.7f,  3.0f, -7.5f),  
+      glm::vec3( 1.3f, -2.0f, -2.5f),  
+      glm::vec3( 1.5f,  2.0f, -2.5f), 
+      glm::vec3( 1.5f,  0.2f, -1.5f), 
+      glm::vec3(-1.3f,  1.0f, -1.5f)  
+  };
+
   while ( !glfwWindowShouldClose( window ) ) {
     processInput(window);
     
@@ -219,15 +275,10 @@ int main( void ) {
       title_countdown_s = 0.2;
     }
 
-
-    // Check if the window resized.
-    //glfwGetWindowSize( window, &win_w, &win_h );
-    // Update the viewport (drawing area) to fill the window dimensions.
-		//glViewport( 0, 0, win_w, win_h );
-
     // Wipe the drawing surface clear.
     glClearColor( 0.2f, 0.3f, 0.3f, 1.0f);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glBindVertexArray( vao );
     glActiveTexture(GL_TEXTURE0);
@@ -235,18 +286,30 @@ int main( void ) {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
-    //transformantiob
-    glm::mat4 trans = glm::mat4(1.0f);
-    trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-    trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-    
     shader_program.use();
-    unsigned int transformLoc = glGetUniformLocation(shader_program.ID, "transform");
-    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-    //glDrawArrays( GL_TRIANGLES, 0, 3 );
+    // create transformations
+    glm::mat4 view          = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    glm::mat4 projection    = glm::mat4(1.0f);
+    projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)600, 0.1f, 100.0f);
+    view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    // pass transformation matrices to the shader
+    shader_program.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+    shader_program.setMat4("view", view);
+    for(unsigned int i = 0; i < 10; i++)
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[i]);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        float angle = 20.0f * i; 
+        model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+        shader_program.setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+    //glDrawArrays( GL_TRIANGLES, 0, 36 );
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // draw in wireframe mode
     //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // dram  filled
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     //glBindVertexArray(0);
     // Put the stuff we've been drawing onto the visible area.
     glfwSwapBuffers( window );

@@ -15,6 +15,7 @@
 #include "stb_image.h"
 
 #include <shader.h>
+#include <camera.h>
 
 #define Assert(condition, message, ...) \
     do { \
@@ -25,6 +26,14 @@
         } \
     } while (0)
 
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
+float lastX = 400, lastY = 300;
+bool firstMouse = true;
+
 void error_callback_glfw(int error, const char* description) {
   fprintf( stderr, "GLFW ERROR: code %i msg: %s.\n", error, description );
 }
@@ -34,10 +43,45 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+  float xpos = static_cast<float>(xposIn);
+  float ypos = static_cast<float>(yposIn);
+
+  if (firstMouse)
+  {
+    lastX = xpos;
+    lastY = ypos;
+    firstMouse = false;
+  }
+
+  float xoffset = xpos - lastX;
+  float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+  lastX = xpos;
+  lastY = ypos;
+
+  camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+  camera.ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
 void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+      camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+      camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+      camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+      camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 int main( void ) {
@@ -90,6 +134,9 @@ int main( void ) {
   }
   glfwMakeContextCurrent( window );
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetCursorPosCallback(window, mouse_callback); 
+  glfwSetScrollCallback(window, scroll_callback);    
                                   
   // Start Glad, so we can call OpenGL functions.
   int version_glad = gladLoadGL( glfwGetProcAddress );
@@ -256,21 +303,27 @@ int main( void ) {
       glm::vec3(-1.3f,  1.0f, -1.5f)  
   };
 
+  /*glm::mat4 view;
+  view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), 
+          glm::vec3(0.0f, 0.0f, 0.0f), 
+          glm::vec3(0.0f, 1.0f, 0.0f));*/
+          
+
   while ( !glfwWindowShouldClose( window ) ) {
     processInput(window);
     
-    double curr_s     = glfwGetTime();   // Get the current time.
-	  double elapsed_s  = curr_s - prev_s; // Work out the time elapsed over the last frame.
-	  prev_s            = curr_s;          // Set the 'previous time' for the next frame to use.
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;  
 
     // Print the FPS, but not every frame, so it doesn't flicker too much.
-    title_countdown_s -= elapsed_s;
-    if ( title_countdown_s <= 0.0 && elapsed_s > 0.0 ) {
-      double fps        = 1.0 / elapsed_s;
+    title_countdown_s -= deltaTime;
+    if ( title_countdown_s <= 0.0 && deltaTime > 0.0 ) {
+      double fps        = 1.0 / deltaTime;
 
       // Create a string and put the FPS as the window title.
       char tmp[256];
-      sprintf( tmp, "FPS: %.2lf %.2lf ms", fps, elapsed_s );
+      sprintf( tmp, "FPS: %.2lf %.2lf ms", fps, deltaTime );
       glfwSetWindowTitle(window, tmp );
       title_countdown_s = 0.2;
     }
@@ -288,10 +341,13 @@ int main( void ) {
 
     shader_program.use();
     // create transformations
-    glm::mat4 view          = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
     glm::mat4 projection    = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(45.0f), (float)800 / (float)600, 0.1f, 100.0f);
-    view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);
+    //view       = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    const float radius = 25.0f;
+    float camX = sin(glfwGetTime()) * radius;
+    float camZ = cos(glfwGetTime()) * radius;
+    glm::mat4 view = camera.GetViewMatrix();
     // pass transformation matrices to the shader
     shader_program.setMat4("projection", projection); // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
     shader_program.setMat4("view", view);

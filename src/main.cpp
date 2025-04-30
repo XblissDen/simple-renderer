@@ -311,12 +311,25 @@ int main( void ) {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glm::vec3 lightColor;
+    lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));
+    lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));
+    lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));
+    glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); 
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); 
     // be sure to activate shader when setting uniforms/drawing objects
     lightingShader.use();
-    lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-    lightingShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
-    lightingShader.setVec3("lightPos", lightPos);
-    lightingShader.setVec3("viewPos", camera.Position); 
+    lightingShader.setVec3("light.position", lightPos);
+    lightingShader.setVec3("viewPos", camera.Position);
+    //shader material uniforms
+    lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+    lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    lightingShader.setFloat("material.shininess", 32.0f);
+    //shader light uniforms
+    lightingShader.setVec3("light.ambient",  ambientColor);
+    lightingShader.setVec3("light.diffuse",  diffuseColor); // darken diffuse light a bit
+    lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);  
 
     // view/projection transformations
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)800 / (float)600, 0.1f, 100.0f);

@@ -8,7 +8,6 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <string>
 
 const char* shaderPath = "../assets/shaders/";
 

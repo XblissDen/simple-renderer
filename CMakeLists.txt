@@ -9,16 +9,20 @@ set(GLFW_DIR ${CMAKE_SOURCE_DIR}/libs/glfw)
 set(GLAD_DIR ${CMAKE_SOURCE_DIR}/libs/glad)
 
 set(GLFW_LIB ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3dll.lib)
+set(ASSIMP_LIB ${CMAKE_SOURCE_DIR}/libs/assimp/lib/assimp-vc143-mtd.lib)
+set(ZLIB_LIB ${CMAKE_SOURCE_DIR}/libs/assimp/lib/zlibstaticd.lib)
 
 find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
-#find_package(glfw3 REQUIRED)
-#include_directories(${GLFW_INCLUDE_DIRS})
-
-#find_package(GLAD REQUIRED)
-#include_directories(${GLAD_INCLUDE_DIRS})
-
 find_package(OpenGL)
+
+#include(FetchContent)
+#FetchContent_Declare(
+#    zlib
+#    GIT_REPOSITORY https://github.com/madler/zlib.git
+#    GIT_TAG v1.2.13  # or whatever is the latest version
+#)
+#FetchContent_MakeAvailable(zlib)
 
 # subdirectories
 #add_subdirectory( src/engine )
@@ -27,6 +31,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/libs/glad/include )
 include_directories( ${CMAKE_SOURCE_DIR}/libs/glfw/include )
 include_directories( ${CMAKE_SOURCE_DIR}/libs )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
+include_directories( ${CMAKE_SOURCE_DIR}/libs/assimp )
 
 set(SOURCES
     src/main.cpp
@@ -35,12 +40,15 @@ set(SOURCES
 
 set(HEADERS
     include/shader.h
+    include/camera.h
+    include/mesh.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-target_link_libraries(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/libs/glfw/lib/glfw3dll.lib OpenGL::GL)
+target_link_libraries(${PROJECT_NAME} ${GLFW_LIB} ${ASSIMP_LIB} ${ZLIB_LIB} OpenGL::GL)#zlibstatic
 
 target_include_directories(SimpleRenderer PUBLIC "${PROJECT_BINARY_DIR}")
+#target_include_directories(SimpleRenderer PRIVATE ${CMAKE_SOURCE_DIR}/libs/assimp)
 
 add_custom_command(
             TARGET ${PROJECT_NAME} POST_BUILD

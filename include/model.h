@@ -3,28 +3,73 @@
 #include <string>
 using namespace std;
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "main.h"
 #include "mesh.h"
 #include "shader.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 unsigned int TextureFromFile(const char *path, const string &directory);
 
 class Model
 {
 public:
+    glm::mat4 model = glm::mat4(1.0f);
+
+    glm::vec3 Position = glm::vec3(0.0f);
+    glm::vec3 Scale = glm::vec3(1.0f);
+    glm::vec3 Rotation = glm::vec3(0.0f);
+
     Model(char *path)
     {
         loadModel(path);
     }
     void Draw(Shader &shader)
     {
+        model = glm::mat4(1.0f);
+        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)win_w / (float)win_h, 0.1f, 100.0f);
+        //glm::mat4 view = camera.GetViewMatrix();
+
+        model = glm::translate(model, Position);
+        model = glm::scale(model, Scale);
+        Rotate(Rotation);
+
+        //shader.setMat4("projection", projection);
+        //shader.setMat4("view", view);
+        shader.setMat4("model", model);
+
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
+    }
+    void Translate(glm::vec3 translation)
+    {
+        model = glm::translate(model, translation);
+    }
+    void SetScale(glm::vec3 scale)
+    {
+        model = glm::scale(model, scale);
+    }
+    void Rotate(glm::vec3 rotation)
+    {
+        model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0, 0));
+        model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0, 1.0f, 0));
+        model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0, 0, 1.0f));
+    }
+    void RotateX(float rotationDegree)
+    {
+        model = glm::rotate(model, glm::radians(rotationDegree), glm::vec3(1.0f, 0, 0));
+    }
+    void RotateY(float rotationDegree)
+    {
+        model = glm::rotate(model, glm::radians(rotationDegree), glm::vec3(0, 1.0f, 0));
+    }
+    void RotateZ(float rotationDegree)
+    {
+        model = glm::rotate(model, glm::radians(rotationDegree), glm::vec3(0, 0, 1.0f));
     }
 
 private:

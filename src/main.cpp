@@ -4,42 +4,17 @@
 #include <sstream>
 #include <stdio.h>
 
-#include <glad/gl.h>
-#include <glfw/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"
+#include <main.h>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 #include <shader.h>
 #include <camera.h>
 #include <mesh.h>
 #include <model.h>
-
-#define Assert(condition, message, ...) \
-    do { \
-        if (!(condition)) { \
-            fprintf(stderr, "Assertion failed at %s:%d: " message "\n", \
-                    __FILE__, __LINE__, ##__VA_ARGS__); \
-            exit(EXIT_FAILURE); \
-        } \
-    } while (0)
-
-int SCR_WIDTH = 1280;
-int SCR_HEIGHT = 720;
-
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-
-float deltaTime = 0.0f;	// Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
-
-float lastX = 640, lastY = 360;
-bool firstMouse = true;
-
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 void error_callback_glfw(int error, const char* description) {
   fprintf( stderr, "GLFW ERROR: code %i msg: %s.\n", error, description );
@@ -52,6 +27,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+  if(cursorLocked == false) return;
   float xpos = static_cast<float>(xposIn);
   float ypos = static_cast<float>(yposIn);
 
@@ -89,6 +65,17 @@ void processInput(GLFWwindow *window)
       camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
       camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+    {
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      cursorLocked = false;
+    }
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+    {
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      cursorLocked = true;
+    }
 }
 
 unsigned int loadTexture(const char *path);
@@ -111,7 +98,8 @@ int main( void ) {
   //glfwWindowHint( GLFW_SAMPLES, 8 );
   bool full_screen = false;
   GLFWmonitor *mon = NULL;
-  int win_w = 1280, win_h = 720;
+  win_w = 1280;
+  win_h = 720;
 
   if ( full_screen ) {
     mon = glfwGetPrimaryMonitor();
@@ -146,7 +134,20 @@ int main( void ) {
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwSetCursorPosCallback(window, mouse_callback); 
   glfwSetScrollCallback(window, scroll_callback);    
-                                  
+  
+  // Setup Dear ImGui context
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+  
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 410");
   // Start Glad, so we can call OpenGL functions.
   int version_glad = gladLoadGL( glfwGetProcAddress );
   if ( version_glad == 0 ) {
@@ -267,14 +268,14 @@ int main( void ) {
   stbi_set_flip_vertically_on_load(true);
   // configure global opengl state
   // -----------------------------
-  glEnable(GL_DEPTH_TEST); 
+  glEnable(GL_DEPTH_TEST);
 
-  Shader lightingShader("lighting.vert", "lighting.frag");
+  //Shader lightingShader("lighting.vert", "lighting.frag");
   Shader lightCubeShader("lightCube.vert", "lightCube.frag");
   
-  lightingShader.use();
-  lightingShader.setInt("material.diffuse", 0);
-  lightingShader.setInt("material.specular", 1);
+  //lightingShader.use();
+  //lightingShader.setInt("material.diffuse", 0);
+  //lightingShader.setInt("material.specular", 1);
 
   glm::vec3 pointLightPositions[] = {
     glm::vec3( 0.7f,  0.2f,  2.0f),
@@ -295,15 +296,23 @@ int main( void ) {
   Shader modelShader("modelShader.vert", "modelShader.frag");
   Model ourModel("../assets/models/backpack/backpack.obj");
 
-  while ( !glfwWindowShouldClose( window ) ) {
+  while ( !glfwWindowShouldClose( window ) ) 
+  {
+    glfwPollEvents(); // Update window events.
     processInput(window);
+
+    if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
+        {
+            ImGui_ImplGlfw_Sleep(10);
+            continue;
+        }
     
     float currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;  
 
     // Print the FPS, but not every frame, so it doesn't flicker too much.
-    title_countdown_s -= deltaTime;
+    /*title_countdown_s -= deltaTime;
     if ( title_countdown_s <= 0.0 && deltaTime > 0.0 ) {
       double fps        = 1.0 / deltaTime;
 
@@ -312,12 +321,38 @@ int main( void ) {
       sprintf_s( tmp, "FPS: %.2lf %.2lf ms", fps, deltaTime );
       glfwSetWindowTitle(window, tmp );
       title_countdown_s = 0.2;
+    }*/
+
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    {
+      static float f = 0.0f;
+      static int counter = 0;
+
+      ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
+
+      ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
+
+      ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
+      ImGui::DragFloat3("position", glm::value_ptr(ourModel.Position), 0.01f);
+      ImGui::DragFloat3("rotation", glm::value_ptr(ourModel.Rotation), 0.01f);
+      ImGui::DragFloat3("scale", glm::value_ptr(ourModel.Scale), 0.01f);
+      if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
+        counter++;
+      ImGui::SameLine();
+      ImGui::Text("counter = %d", counter);
+
+      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+      ImGui::End();
     }
+    ImGui::Render();
 
     // Wipe the drawing surface clear.
     glClearColor( 0.1f, 0.1f, 0.1f, 1.0f);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // be sure to activate shader when setting uniforms/drawing objects
     modelShader.use();
@@ -384,11 +419,6 @@ int main( void ) {
     glm::mat4 view = camera.GetViewMatrix();
     modelShader.setMat4("projection", projection);
     modelShader.setMat4("view", view);
-    // render the loaded model
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-    model = glm::scale(model, glm::vec3(0.8f, 0.8f, 0.8f));     // it's a bit too big for our scene, so scale it down
-    modelShader.setMat4("model", model);
     ourModel.Draw(modelShader);
 
     // also draw the lamp object(s)
@@ -407,21 +437,26 @@ int main( void ) {
         lightCubeShader.setVec3("lightColor", pointLightColors[i]);
         glDrawArrays(GL_TRIANGLES, 0, 36);
     }
-
+    glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, lightPos);
     model = glm::scale(model, glm::vec3(0.2f));
     lightCubeShader.setMat4("model", model);
     lightCubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     // Put the stuff we've been drawing onto the visible area.
     glfwSwapBuffers( window );
-    glfwPollEvents(); // Update window events.
+    
   }
   // de-allocate all resources once they've outlived their purpose:
   glDeleteVertexArrays(1, &cubeVAO);
   glDeleteVertexArrays(1, &lightCubeVAO);
   glDeleteBuffers(1, &VBO);
+
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
   // Close OpenGL window, context, and any other GLFW resources.
   glfwTerminate();
   return 0;

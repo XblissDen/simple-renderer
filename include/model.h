@@ -161,7 +161,8 @@ private:
                                                                 aiTextureType_SPECULAR, "texture_specular");
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
         }
-
+        numVerticesLoaded += mesh->mNumVertices;
+        numTrianglesLoaded += mesh->mNumFaces;
         return Mesh(vertices, indices, textures);
     }
     vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type,

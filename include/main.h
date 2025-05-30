@@ -33,3 +33,6 @@ bool firstMouse = true;
 bool cursorLocked = true;
 
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+unsigned int numVerticesLoaded = 0;
+unsigned int numTrianglesLoaded = 0;

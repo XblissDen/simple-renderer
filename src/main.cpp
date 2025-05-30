@@ -270,9 +270,9 @@ int main( void ) {
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
-  glEnable(GL_STENCIL_TEST);
-  glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-  glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+  //glEnable(GL_STENCIL_TEST);
+  //glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+  //glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
   //Shader lightingShader("lighting.vert", "lighting.frag");
   Shader lightCubeShader("lightCube.vert", "lightCube.frag");
@@ -298,7 +298,7 @@ int main( void ) {
   // load models
   // -----------
   Shader modelShader("modelShader.vert", "modelShader.frag");
-  Shader singleColorShader("modelShader.vert", "shaderSingleColor.frag");
+  //Shader singleColorShader("modelShader.vert", "shaderSingleColor.frag");
   Model ourModel("../assets/models/backpack/backpack.obj");
 
   while ( !glfwWindowShouldClose( window ) ) 
@@ -307,11 +307,11 @@ int main( void ) {
     processInput(window);
 
     if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
-        {
-            ImGui_ImplGlfw_Sleep(10);
-            continue;
-        }
-    
+    {
+      ImGui_ImplGlfw_Sleep(10);
+      continue;
+    }
+
     float currentFrame = static_cast<float>(glfwGetTime());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;  
@@ -351,20 +351,18 @@ int main( void ) {
       ImGui::Text("counter = %d", counter);
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+      ImGui::Text("Vertices loaded %d Triangles loaded %d", numVerticesLoaded, numTrianglesLoaded);
       ImGui::End();
     }
     ImGui::Render();
 
     // Wipe the drawing surface clear.
     glClearColor( 0.1f, 0.1f, 0.1f, 1.0f);
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT /*| GL_STENCIL_BUFFER_BIT*/ );
 
-    singleColorShader.use();
     glm::mat4 model = glm::mat4(1.0f);
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    singleColorShader.setMat4("view", view);
-    singleColorShader.setMat4("projection", projection);
 
     // be sure to activate shader when setting uniforms/drawing objects
     modelShader.use();
@@ -429,27 +427,8 @@ int main( void ) {
     modelShader.setMat4("projection", projection);
     modelShader.setMat4("view", view);
 
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
-    glStencilMask(0xFF);               // enable writing to the stencil buffer
-
-    ourModel.Scale = glm::vec3(1.0f);
     ourModel.Draw(modelShader);
 
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00); // disable writing to the stencil buffer
-    glDisable(GL_DEPTH_TEST);
-
-    singleColorShader.use();
-    float scale = 1.1f;
-    ourModel.Scale = glm::vec3(scale);
-    singleColorShader.setMat4("model", ourModel.model);
-    ourModel.Draw(singleColorShader);
-    glStencilMask(0xFF);
-    glStencilFunc(GL_ALWAYS, 1, 0xFF);   
-    glEnable(GL_DEPTH_TEST);  
-
-    //glStencilMask(0x00);
     // also draw the lamp object(s)
     lightCubeShader.use();
     lightCubeShader.setMat4("projection", projection);

@@ -204,6 +204,53 @@ int main( void ) {
     -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
   };
+
+  float cubeVertices[] = {
+      //positions         //normals           //texture coords
+      // Back face
+     -0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
+      0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 1.0f,   // top-right
+      0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
+      0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 1.0f,   // top-right
+     -0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+     -0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 1.0f,  // top-left
+      // Front face
+     -0.5f, -0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 0.0f, // bottom-left
+      0.5f, -0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 0.0f,  // bottom-right
+      0.5f,  0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 1.0f,   // top-right
+      0.5f,  0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 1.0f,   // top-right
+     -0.5f,  0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 1.0f,  // top-left
+     -0.5f, -0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 0.0f, // bottom-left
+      // Left face
+     -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,   // top-right
+     -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,  // top-left
+     -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+     -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+     -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,  // bottom-right
+     -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,   // top-right
+      // Right face
+      0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 0.0f,    // top-left
+      0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  // bottom-right
+      0.5f,  0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 1.0f,   // top-right
+      0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  // bottom-right
+      0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 0.0f,    // top-left
+      0.5f, -0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f,   // bottom-left
+      // Bottom face
+      -0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+       0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 1.0f,  // top-left
+       0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,   // bottom-left
+       0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,   // bottom-left
+      -0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 0.0f,  // bottom-right
+      -0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+      // Top face
+      -0.5f, 0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+       0.5f, 0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   // bottom-right
+       0.5f, 0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 1.0f,  // top-right
+       0.5f, 0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   // bottom-right
+      -0.5f, 0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+      -0.5f, 0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 0.0f   // bottom-left
+  };
+
   unsigned int indices[] = {  // note that we start from 0!
     0, 1, 3,   // first triangle
     1, 2, 3    // second triangle
@@ -227,7 +274,7 @@ int main( void ) {
   glGenBuffers(1, &VBO);
 
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
   glBindVertexArray(cubeVAO);
 
@@ -270,6 +317,8 @@ int main( void ) {
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
+
+  glEnable(GL_CULL_FACE);    
   //glEnable(GL_STENCIL_TEST);
   //glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
   //glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);

@@ -7,16 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "defines.h"
 #include "camera.h"
-
-#define Assert(condition, message, ...) \
-    do { \
-        if (!(condition)) { \
-            fprintf(stderr, "Assertion failed at %s:%d: " message "\n", \
-                    __FILE__, __LINE__, ##__VA_ARGS__); \
-            exit(EXIT_FAILURE); \
-        } \
-    } while (0)
 
 int SCR_WIDTH = 1280;
 int SCR_HEIGHT = 720;

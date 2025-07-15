@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "defines.h"
+#include "main.h"
 #include "model.h"
 #include "shader.h"
 
@@ -31,7 +32,7 @@ public:
     void setShader(Shader* shd);
     void setVisible(bool isVisible);
     void updateModelMatrix();
-    void render(const glm::mat4& viewProjMatrix);
+    void render(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix);
 };
 
 // Manages all game objects
@@ -40,7 +41,9 @@ public:
     std::vector<GameObject> gameObjects;
 
     void createGameObject(std::string name);
+    void createGameObject(std::string name, Shader* shd, Model* mdl);
     GameObject* getGameObject(u32 id);
+    GameObject* getGameObject(std::string name);
     void removeGameObject(u32 id);
     void update(); // Updates all game objects (e.g., world matrices)
     void render(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix); // Renders all visible game objects

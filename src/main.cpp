@@ -4,17 +4,28 @@
 #include <sstream>
 #include <stdio.h>
 
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "stb_image.h"
-#include <main.h>
+#include "main.h"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include <shader.h>
-#include <camera.h>
-#include <mesh.h>
-#include <model.h>
+#include "GameObject/GameObject.h"
+#include "shader.h"
+#include "camera.h"
+#include "model.h"
+
+int SCR_WIDTH = 1280;
+int SCR_HEIGHT = 720;
+int win_w = 1280, win_h = 720;
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+float lastX = 640, lastY = 360;
+bool firstMouse = true;
+bool cursorLocked = true;
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+unsigned int numVerticesLoaded = 0;
+unsigned int numTrianglesLoaded = 0;
 
 void error_callback_glfw(int error, const char* description) {
   fprintf( stderr, "GLFW ERROR: code %i msg: %s.\n", error, description );
@@ -326,29 +337,16 @@ int main( void ) {
   //Shader lightingShader("lighting.vert", "lighting.frag");
   Shader lightCubeShader("lightCube.vert", "lightCube.frag");
   
-  //lightingShader.use();
-  //lightingShader.setInt("material.diffuse", 0);
-  //lightingShader.setInt("material.specular", 1);
-
-  glm::vec3 pointLightPositions[] = {
-    glm::vec3( 0.7f,  0.2f,  2.0f),
-    glm::vec3( 2.3f, -3.3f, -4.0f),
-    glm::vec3(-4.0f,  2.0f, -12.0f),
-    glm::vec3( 0.0f,  0.0f, -3.0f)
-  };
-
-  glm::vec3 pointLightColors[] = {
-      glm::vec3(1.0f, 0.6f, 0.0f),
-      glm::vec3(1.0f, 0.0f, 0.0f),
-      glm::vec3(1.0f, 1.0, 0.0),
-      glm::vec3(0.2f, 0.2f, 1.0f)
-  };
-
   // load models
   // -----------
   Shader modelShader("modelShader.vert", "modelShader.frag");
   //Shader singleColorShader("modelShader.vert", "shaderSingleColor.frag");
   Model ourModel("../assets/models/backpack/backpack.obj");
+
+  GameObjectManager GOManager;
+  GOManager.createGameObject("Backpack", &modelShader, &ourModel);
+
+  printf("GO: %s %i", GOManager.getGameObject("Backpack")->Name.c_str(), GOManager.getGameObject("Backpack")->id);
 
   while ( !glfwWindowShouldClose( window ) ) 
   {
@@ -391,9 +389,9 @@ int main( void ) {
       ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
 
       ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::DragFloat3("position", glm::value_ptr(ourModel.Position), 0.01f);
-      ImGui::DragFloat3("rotation", glm::value_ptr(ourModel.Rotation), 0.01f);
-      ImGui::DragFloat3("scale", glm::value_ptr(ourModel.Scale), 0.01f);
+      ImGui::DragFloat3("position", glm::value_ptr(GOManager.getGameObject("Backpack")->position), 0.01f);
+      ImGui::DragFloat3("rotation", glm::value_ptr(GOManager.getGameObject("Backpack")->rotation), 0.01f);
+      ImGui::DragFloat3("scale", glm::value_ptr(GOManager.getGameObject("Backpack")->scale), 0.01f);
       if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
         counter++;
       ImGui::SameLine();
@@ -413,70 +411,8 @@ int main( void ) {
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-    // be sure to activate shader when setting uniforms/drawing objects
-    modelShader.use();
-    modelShader.setVec3("viewPos", camera.Position);
-    modelShader.setFloat("material.shininess", 32.0f);
-
-    /*
-       Here we set all the uniforms for the 5/6 types of lights we have. We have to set them manually and index
-       the proper PointLight struct in the array to set each uniform variable. This can be done more code-friendly
-       by defining light types as classes and set their values in there, or by using a more efficient uniform approach
-       by using 'Uniform buffer objects', but that is something we'll discuss in the 'Advanced GLSL' tutorial.
-    */
-    // directional light
-    modelShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-    modelShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-    modelShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-    modelShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-    // point light 1
-    modelShader.setVec3("pointLights[0].position", pointLightPositions[0]);
-    modelShader.setVec3("pointLights[0].ambient", pointLightColors[0].x * 0.1f, pointLightColors[0].y * 0.1f, pointLightColors[0].z * 0.1f);
-    modelShader.setVec3("pointLights[0].diffuse", pointLightColors[0].x, pointLightColors[0].y, pointLightColors[0].z);
-    modelShader.setVec3("pointLights[0].specular", pointLightColors[0].x, pointLightColors[0].y, pointLightColors[0].z);
-    modelShader.setFloat("pointLights[0].constant", 1.0f);
-    modelShader.setFloat("pointLights[0].linear", 0.09f);
-    modelShader.setFloat("pointLights[0].quadratic", 0.032f);
-    // point light 2
-    modelShader.setVec3("pointLights[1].position", pointLightPositions[1]);
-    modelShader.setVec3("pointLights[1].ambient", pointLightColors[1].x * 0.1f, pointLightColors[1].y * 0.1f, pointLightColors[1].z * 0.1f);
-    modelShader.setVec3("pointLights[1].diffuse", pointLightColors[1].x, pointLightColors[1].y, pointLightColors[1].z);
-    modelShader.setVec3("pointLights[1].specular", pointLightColors[1].x, pointLightColors[1].y, pointLightColors[1].z);
-    modelShader.setFloat("pointLights[1].constant", 1.0f);
-    modelShader.setFloat("pointLights[1].linear", 0.09f);
-    modelShader.setFloat("pointLights[1].quadratic", 0.032f);
-    // point light 3
-    modelShader.setVec3("pointLights[2].position", pointLightPositions[2]);
-    modelShader.setVec3("pointLights[2].ambient", pointLightColors[2].x * 0.1f, pointLightColors[2].y * 0.1f, pointLightColors[2].z * 0.1f);
-    modelShader.setVec3("pointLights[2].diffuse", pointLightColors[2].x, pointLightColors[2].y, pointLightColors[2].z);
-    modelShader.setVec3("pointLights[2].specular", pointLightColors[2].x, pointLightColors[2].y, pointLightColors[2].z);
-    modelShader.setFloat("pointLights[2].constant", 1.0f);
-    modelShader.setFloat("pointLights[2].linear", 0.09f);
-    modelShader.setFloat("pointLights[2].quadratic", 0.032f);
-    // point light 4
-    modelShader.setVec3("pointLights[3].position", pointLightPositions[3]);
-    modelShader.setVec3("pointLights[3].ambient", pointLightColors[3].x * 0.1f, pointLightColors[3].y * 0.1f, pointLightColors[3].z * 0.1f);
-    modelShader.setVec3("pointLights[3].diffuse", pointLightColors[3].x, pointLightColors[3].y, pointLightColors[3].z);
-    modelShader.setVec3("pointLights[3].specular", pointLightColors[3].x, pointLightColors[3].y, pointLightColors[3].z);
-    modelShader.setFloat("pointLights[3].constant", 1.0f);
-    modelShader.setFloat("pointLights[3].linear", 0.09f);
-    modelShader.setFloat("pointLights[3].quadratic", 0.032f);
-    // spotLight
-    modelShader.setVec3("spotLight.position", camera.Position);
-    modelShader.setVec3("spotLight.direction", camera.Front);
-    modelShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-    modelShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-    modelShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-    modelShader.setFloat("spotLight.constant", 1.0f);
-    modelShader.setFloat("spotLight.linear", 0.09f);
-    modelShader.setFloat("spotLight.quadratic", 0.032f);
-    modelShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-    modelShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
-    modelShader.setMat4("projection", projection);
-    modelShader.setMat4("view", view);
-
-    ourModel.Draw(modelShader);
+    GOManager.update();
+    GOManager.render(view, projection);
 
     // also draw the lamp object(s)
     lightCubeShader.use();

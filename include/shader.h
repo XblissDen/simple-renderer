@@ -9,7 +9,7 @@
 #include <sstream>
 #include <iostream>
 
-const char* shaderPath = "../assets/shaders/";
+constexpr char* shaderPath = "../assets/shaders/";
 
 class Shader
 {

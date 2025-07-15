@@ -10,6 +10,8 @@ using namespace std;
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "shader.h"
+
 #define MAX_BONE_INFLUENCE 4
 
 
@@ -40,7 +42,7 @@ class Mesh {
 
             setupMesh();
         }
-        void Draw(Shader &shader)
+        void Draw(Shader *shader)
         {
             unsigned int diffuseNr = 1;
             unsigned int specularNr = 1;
@@ -55,7 +57,7 @@ class Mesh {
                 else if (name == "texture_specular")
                     number = std::to_string(specularNr++);
 
-                shader.setInt(("material." + name + number).c_str(), i);
+                shader->setInt(("material." + name + number).c_str(), i);
                 glBindTexture(GL_TEXTURE_2D, textures[i].id);
             }
             glActiveTexture(GL_TEXTURE0);

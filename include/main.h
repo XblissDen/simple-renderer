@@ -10,21 +10,32 @@
 #include "defines.h"
 #include "camera.h"
 
-int SCR_WIDTH = 1280;
-int SCR_HEIGHT = 720;
-int win_w = 1280, win_h = 720;
+extern int SCR_WIDTH;
+extern int SCR_HEIGHT;
+extern int win_w, win_h;
+extern Camera camera;
+extern float deltaTime;
+extern float lastFrame;
+extern float lastX, lastY;
+extern bool firstMouse;
+extern bool cursorLocked;
+extern glm::vec3 lightPos;
+extern unsigned int numVerticesLoaded;
+extern unsigned int numTrianglesLoaded;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+const glm::vec3 dirLightDirection(-0.2f, -1.0f, -0.3f);
+const glm::vec3 dirLightAmbient(0.05f, 0.05f, 0.05f);
+const glm::vec3 dirLightDiffuse(0.4f, 0.4f, 0.4f);
+const glm::vec3 dirLightSpecular(0.5f, 0.5f, 0.5f);
 
-float deltaTime = 0.0f;	// Time between current frame and last frame
-float lastFrame = 0.0f; // Time of last frame
+const glm::vec3 pointLightPositions[] = {
+    glm::vec3(0.7f, 0.2f, 2.0f),
+    glm::vec3(2.3f, -3.3f, -4.0f),
+    glm::vec3(-4.0f, 2.0f, -12.0f),
+    glm::vec3(0.0f, 0.0f, -3.0f)};
 
-float lastX = 640, lastY = 360;
-bool firstMouse = true;
-
-bool cursorLocked = true;
-
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-
-unsigned int numVerticesLoaded = 0;
-unsigned int numTrianglesLoaded = 0;
+const glm::vec3 pointLightColors[] = {
+    glm::vec3(1.0f, 0.6f, 0.0f),
+    glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec3(1.0f, 1.0, 0.0),
+    glm::vec3(0.2f, 0.2f, 1.0f)};

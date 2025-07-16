@@ -18,30 +18,12 @@ static unsigned int TextureFromFile(const char *path, const string &directory);
 class Model
 {
 public:
-    //glm::mat4 model = glm::mat4(1.0f);
-
-    //glm::vec3 Position = glm::vec3(0.0f);
-    //glm::vec3 Scale = glm::vec3(1.0f);
-    //glm::vec3 Rotation = glm::vec3(0.0f);
-
     Model(char *path)
     {
         loadModel(path);
     }
     void Draw(Shader *shader)
     {
-        //model = glm::mat4(1.0f);
-        //glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)win_w / (float)win_h, 0.1f, 100.0f);
-        //glm::mat4 view = camera.GetViewMatrix();
-
-        //model = glm::translate(model, Position);
-        //model = glm::scale(model, Scale);
-        //Rotate(Rotation);
-
-        //shader.setMat4("projection", projection);
-        //shader.setMat4("view", view);
-        //shader.setMat4("model", model);
-
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
     }

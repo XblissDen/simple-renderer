@@ -1,7 +1,7 @@
 #include "GameObject.h"
 
-#define STB_IMAGE_IMPLEMENTATION // TODO shouldn't be there
-#include "stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION // TODO shouldn't be there
+//#include "stb_image.h"
 
 GameObject::GameObject()
 {

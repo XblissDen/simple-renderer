@@ -9,10 +9,14 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-#include "GameObject/GameObject.h"
+//#include "GameObject/GameObject.h"
+#include "ecs/ecs.h"
+#include "assets/asset_manager.h"
+#include "rendering/gpu_resource_manager.h"
 #include "shader.h"
 #include "camera.h"
-#include "model.h"
+//#include "model.h"
+
 
 int SCR_WIDTH = 1280;
 int SCR_HEIGHT = 720;
@@ -244,7 +248,7 @@ int main( void ) {
     -1.0f,  1.0f,  0.0f, 1.0f,
      1.0f, -1.0f,  1.0f, 0.0f,
      1.0f,  1.0f,  1.0f, 1.0f
-};	
+  };	
 
   unsigned int VBO, cubeVAO;
   glGenVertexArrays(1, &cubeVAO);
@@ -351,15 +355,22 @@ int main( void ) {
   screenShader.use();
   screenShader.setInt("screenTexture", 0);
   //Shader singleColorShader("modelShader.vert", "shaderSingleColor.frag");
-  Model ourModel("../assets/models/backpack/backpack.obj");
+  //Model ourModel("../assets/models/backpack/backpack.obj");
 
-  GameObjectManager GOManager;
-  GOManager.createGameObject("Backpack", &modelShader, &ourModel);
+  //GameObjectManager GOManager;
+  //GOManager.createGameObject("Backpack", &modelShader, &ourModel);
 
-  printf("GO: %s %i", GOManager.getGameObject("Backpack")->Name.c_str(), GOManager.getGameObject("Backpack")->id);
+  //printf("GO: %s %i", GOManager.getGameObject("Backpack")->Name.c_str(), GOManager.getGameObject("Backpack")->id);
 
   // draw as wireframe
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  Scene scene;
+  AssetManager assetManager;
+
+  // Load a model
+  ModelAssetID backpackModel = assetManager.LoadModel("../assets/models/backpack/backpack.obj");
+
+  printf("backpack materials: %d", assetManager.GetModel(backpackModel)->materials.size());
 
   while ( !glfwWindowShouldClose( window ) ) 
   {
@@ -392,16 +403,17 @@ int main( void ) {
       ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
 
       ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-      ImGui::DragFloat3("position", glm::value_ptr(GOManager.getGameObject("Backpack")->position), 0.01f);
-      ImGui::DragFloat3("rotation", glm::value_ptr(GOManager.getGameObject("Backpack")->rotation), 0.01f);
-      ImGui::DragFloat3("scale", glm::value_ptr(GOManager.getGameObject("Backpack")->scale), 0.01f);
+      //ImGui::DragFloat3("position", glm::value_ptr(GOManager.getGameObject("Backpack")->position), 0.01f);
+      //ImGui::DragFloat3("rotation", glm::value_ptr(GOManager.getGameObject("Backpack")->rotation), 0.01f);
+      //ImGui::DragFloat3("scale", glm::value_ptr(GOManager.getGameObject("Backpack")->scale), 0.01f);
       if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
         counter++;
       ImGui::SameLine();
       ImGui::Text("counter = %d", counter);
+      ImGui::Text("Loaded: %d models, %d vertices", assetManager.GetStats().modelsLoaded, assetManager.GetStats().totalVertices);
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-      ImGui::Text("Vertices loaded %d Triangles loaded %d", numVerticesLoaded, numTrianglesLoaded);
+      //ImGui::Text("Vertices loaded %d Triangles loaded %d", numVerticesLoaded, numTrianglesLoaded);
       ImGui::End();
     }
     ImGui::Render();
@@ -412,7 +424,7 @@ int main( void ) {
     // RENDER
     // ------
     // bind to framebuffer and draw scene as we normally would to color texture
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    //glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
     glClearColor( 0.1f, 0.1f, 0.1f, 1.0f);
@@ -422,8 +434,8 @@ int main( void ) {
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-    GOManager.update();
-    GOManager.render(view, projection);
+    //GOManager.update();
+    //GOManager.render(view, projection);
 
     // also draw the lamp object(s)
     lightCubeShader.use();
@@ -448,7 +460,7 @@ int main( void ) {
     lightCubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
-    // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+    /*// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
     // clear all relevant buffers
@@ -458,7 +470,7 @@ int main( void ) {
     screenShader.use();
     glBindVertexArray(quadVAO);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer); // use the color attachment texture as the texture of the quad plane
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 6);*/
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     // Put the stuff we've been drawing onto the visible area.

@@ -38,6 +38,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/libs/imgui )
 set(SOURCES
     src/main.cpp
     src/GameObject/GameObject.cpp
+    src/ecs/ecs.cpp
+    #src/AssetManager/AssetManager.cpp
 
     libs/glad/src/gl.c
     libs/imgui/imgui.cpp
@@ -52,9 +54,11 @@ set(HEADERS
     include/main.h
     include/shader.h
     include/camera.h
-    include/mesh.h
-    include/model.h
+    #include/mesh.h
+    #include/model.h
     src/GameObject/GameObject.h
+    src/ecs/ecs.h
+    src/assets/asset_manager.h
 )
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 

@@ -26,6 +26,7 @@ struct RenderComponent{
     u32 materialID = 0; // index into material array
     bool isVisible = true;
     float lodDistance = 0.0f;
+    bool castShadows = true;
 };
 
 struct HierarchyComponent {

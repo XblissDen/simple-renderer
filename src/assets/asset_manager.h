@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <assimp/Importer.hpp>
@@ -13,8 +14,20 @@
 #include "defines.h"
 
 // Forward declarations
-struct Vertex;
-struct Texture;
+//struct Vertex;
+//struct Texture;
+
+struct Vertex {
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoords;
+};
+
+struct Texture {
+    unsigned int id;
+    std::string type;
+    std::string path;
+};
 
 // Asset IDs - type-safe identifiers
 using TextureID = u32;
@@ -268,6 +281,7 @@ public:
 
 private:
     void ProcessMaterials(const aiScene* scene, const std::string& directory, ModelAsset& model){
+        printf("num materials %d", scene->mNumMaterials);
         for (size_t i = 0; i < scene->mNumMaterials; i++)
         {
             aiMaterial* aiMat = scene->mMaterials[i];
@@ -294,6 +308,139 @@ private:
             model.materials.push_back(materialID);
         }
         
+    }
+
+    void ProcessNode(aiNode* node, const aiScene* scene, ModelAsset& model){
+        // Process all meshes in this node
+        for(size_t i = 0; i < node->mNumMeshes; i++){
+            aiMesh* aiMesh = scene->mMeshes[node->mMeshes[i]];
+            MeshID meshID = ProcessMesh(aiMesh, scene, model);
+            if(meshID != INVALID_MESH){
+                model.meshes.push_back(meshID);
+            }
+        }
+
+        // Process child nodes
+        for(size_t i = 0; i < node->mNumChildren; i++){
+            ProcessNode(node->mChildren[i], scene, model);
+        }
+    }
+
+    MeshID ProcessMesh(aiMesh* aiMesh, const aiScene* scene, ModelAsset& model){
+        MeshID meshID = m_nextMeshID++;
+        if (meshID >= m_meshes.size()) {
+            m_meshes.resize(meshID + 1);
+        }
+
+        MeshData& mesh = m_meshes[meshID];
+        mesh.name = aiMesh->mName.C_Str();
+
+        // Process vertices
+        mesh.vertices.reserve(aiMesh->mNumVertices);
+
+        // Process vertices
+        mesh.vertices.reserve(aiMesh->mNumVertices);
+        for (uint32_t i = 0; i < aiMesh->mNumVertices; i++) {
+            Vertex vertex;
+            
+            // Position
+            vertex.Position.x = aiMesh->mVertices[i].x;
+            vertex.Position.y = aiMesh->mVertices[i].y;
+            vertex.Position.z = aiMesh->mVertices[i].z;
+            
+            // Normal
+            if (aiMesh->HasNormals()) {
+                vertex.Normal.x = aiMesh->mNormals[i].x;
+                vertex.Normal.y = aiMesh->mNormals[i].y;
+                vertex.Normal.z = aiMesh->mNormals[i].z;
+            }
+            
+            // Texture coordinates
+            if (aiMesh->mTextureCoords[0]) {
+                vertex.TexCoords.x = aiMesh->mTextureCoords[0][i].x;
+                vertex.TexCoords.y = aiMesh->mTextureCoords[0][i].y;
+            }
+            
+            mesh.vertices.push_back(vertex);
+        }
+
+        // Process indices
+        mesh.indices.reserve(aiMesh->mNumFaces * 3);
+        for (uint32_t i = 0; i < aiMesh->mNumFaces; i++) {
+            aiFace face = aiMesh->mFaces[i];
+            for (uint32_t j = 0; j < face.mNumIndices; j++) {
+                mesh.indices.push_back(face.mIndices[j]);
+            }
+        }
+
+        // Calculate mesh bounds
+        CalculateMeshBounds(mesh);
+        
+        // Update statistics
+        m_stats.meshesLoaded++;
+        m_stats.totalVertices += mesh.vertices.size();
+        m_stats.totalTriangles += mesh.indices.size() / 3;
+        m_stats.memoryUsed += mesh.vertices.size() * sizeof(Vertex);
+        m_stats.memoryUsed += mesh.indices.size() * sizeof(uint32_t);
+        
+        return meshID;
+    }
+
+    TextureID LoadMaterialTextures(aiMaterial* mat, aiTextureType type, const std::string& directory) {
+        if (mat->GetTextureCount(type) == 0) {
+            return INVALID_TEXTURE;
+        }
+        
+        aiString str;
+        mat->GetTexture(type, 0, &str);  // Get first texture of this type
+        
+        std::string fullPath = directory + "/" + str.C_Str();
+        return LoadTexture(fullPath, GetTextureTypeName(type));
+    }
+
+    std::string GetTextureTypeName(aiTextureType type) {
+        switch (type) {
+            case aiTextureType_DIFFUSE: return "diffuse";
+            case aiTextureType_SPECULAR: return "specular";
+            case aiTextureType_NORMALS: return "normal";
+            case aiTextureType_HEIGHT: return "height";
+            default: return "unknown";
+        }
+    }
+
+    void CalculateMeshBounds(MeshData& mesh) {
+        if (mesh.vertices.empty()) return;
+        
+        mesh.boundsMin = mesh.boundsMax = mesh.vertices[0].Position;
+        
+        for (const auto& vertex : mesh.vertices) {
+            mesh.boundsMin = glm::min(mesh.boundsMin, vertex.Position);
+            mesh.boundsMax = glm::max(mesh.boundsMax, vertex.Position);
+        }
+        
+        mesh.boundsCenter = (mesh.boundsMin + mesh.boundsMax) * 0.5f;
+        mesh.boundsRadius = glm::distance(mesh.boundsCenter, mesh.boundsMax);
+    }
+
+    void CalculateModelBounds(ModelAsset& model) {
+        if (model.meshes.empty()) return;
+        
+        bool first = true;
+        for (MeshID meshID : model.meshes) {
+            const MeshData& mesh = m_meshes[meshID];
+            
+            if (first) {
+                model.boundsMin = mesh.boundsMin;
+                model.boundsMax = mesh.boundsMax;
+                first = false;
+            } else {
+                model.boundsMin = glm::min(model.boundsMin, mesh.boundsMin);
+                model.boundsMax = glm::max(model.boundsMax, mesh.boundsMax);
+            }
+        }
+        
+        model.boundsCenter = (model.boundsMin + model.boundsMax) * 0.5f;
+        model.boundsRadius = glm::distance(model.boundsCenter, model.boundsMax);
     }
 
     std::string ExtractFileName(const std::string& path){

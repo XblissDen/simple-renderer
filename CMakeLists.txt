@@ -31,14 +31,15 @@ include_directories( ${CMAKE_SOURCE_DIR}/libs/glad/include )
 include_directories( ${CMAKE_SOURCE_DIR}/libs/glfw/include )
 include_directories( ${CMAKE_SOURCE_DIR}/libs )
 include_directories( ${CMAKE_SOURCE_DIR}/include )
-include_directories( ${CMAKE_SOURCE_DIR}/src/GameObject )
+include_directories( ${CMAKE_SOURCE_DIR}/src )
 include_directories( ${CMAKE_SOURCE_DIR}/libs/assimp )
 include_directories( ${CMAKE_SOURCE_DIR}/libs/imgui )
 
 set(SOURCES
     src/main.cpp
-    src/GameObject/GameObject.cpp
-    src/ecs/ecs.cpp
+    #src/GameObject/GameObject.cpp
+    src/ecs/component_manager.cpp
+    src/ecs/scene.cpp
     #src/AssetManager/AssetManager.cpp
 
     libs/glad/src/gl.c
@@ -51,13 +52,15 @@ set(SOURCES
     libs/imgui/imgui_impl_opengl3.cpp
 )
 set(HEADERS
-    include/main.h
-    include/shader.h
-    include/camera.h
+    src/main.h
+    src/shader.h
+    src/camera.h
+    src/defines.h
     #include/mesh.h
     #include/model.h
-    src/GameObject/GameObject.h
-    src/ecs/ecs.h
+    #src/GameObject/GameObject.h
+    src/ecs/component_manager.h
+    src/ecs/scene.h
     src/assets/asset_manager.h
 )
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})

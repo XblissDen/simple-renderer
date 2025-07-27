@@ -4,18 +4,18 @@
 #include <sstream>
 #include <stdio.h>
 
-#include "main.h"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
-//#include "GameObject/GameObject.h"
-#include "ecs/ecs.h"
+#include "main.h"
+
+#include "ecs/component_manager.h"
 #include "assets/asset_manager.h"
 #include "rendering/gpu_resource_manager.h"
+#include "ecs/scene.h"
 #include "shader.h"
 #include "camera.h"
-//#include "model.h"
 
 
 int SCR_WIDTH = 1280;

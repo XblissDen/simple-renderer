@@ -369,8 +369,8 @@ int main( void ) {
 
   // Load a model
   ModelAssetID backpackModel = assetManager.LoadModel("../assets/models/backpack/backpack.obj");
-
-  printf("backpack materials: %d", assetManager.GetModel(backpackModel)->materials.size());
+  
+  //printf("backpack materials: %d", assetManager.GetMaterial(2)->specularTexture);
 
   while ( !glfwWindowShouldClose( window ) ) 
   {

@@ -62,6 +62,8 @@ set(HEADERS
     src/ecs/component_manager.h
     src/ecs/scene.h
     src/assets/asset_manager.h
+    src/rendering/gpu_resource_manager.h
+    src/rendering/renderer.h
 )
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 

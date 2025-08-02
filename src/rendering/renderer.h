@@ -9,6 +9,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "main.h"
+#include "ecs/component_manager.h"
 #include "assets/asset_manager.h"  
 #include "rendering/gpu_resource_manager.h"  
 #include "shader.h"
@@ -77,7 +79,7 @@ public:
 
         // Render all batches
         for (const auto& batch : m_renderBatches) {
-            RenderBatch(batch);
+            DrawBatch(batch);
         }
 
         // Cleanup for next frame
@@ -168,6 +170,36 @@ private:
         m_currentShader->setMat4("view", m_viewMatrix);
         m_currentShader->setMat4("projection", m_projectionMatrix);
         m_currentShader->setVec3("viewPos", m_cameraPosition);
+
+        // Set up basic directional light (simple setup)
+        m_currentShader->setVec3("dirLight.direction", dirLightDirection);
+        m_currentShader->setVec3("dirLight.ambient", dirLightAmbient);
+        m_currentShader->setVec3("dirLight.diffuse", dirLightDiffuse);
+        m_currentShader->setVec3("dirLight.specular", dirLightSpecular);
+
+        // point lights
+        for (int i = 0; i < 4; i++) {
+            std::string base = "pointLights[" + std::to_string(i) + "]";
+            m_currentShader->setVec3(base + ".position", pointLightPositions[i]);
+            m_currentShader->setVec3(base + ".ambient", pointLightColors[i].x * 0.1f, pointLightColors[i].y * 0.1f, pointLightColors[i].z * 0.1f);
+            m_currentShader->setVec3(base + ".diffuse", pointLightColors[i]);
+            m_currentShader->setVec3(base + ".specular", pointLightColors[i]);
+            m_currentShader->setFloat(base + ".constant", 1.0f);
+            m_currentShader->setFloat(base + ".linear", 0.09f);
+            m_currentShader->setFloat(base + ".quadratic", 0.032f);
+        }
+
+        // spotLight
+        m_currentShader->setVec3("spotLight.position", camera.Position);
+        m_currentShader->setVec3("spotLight.direction", camera.Front);
+        m_currentShader->setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        m_currentShader->setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        m_currentShader->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        m_currentShader->setFloat("spotLight.constant", 1.0f);
+        m_currentShader->setFloat("spotLight.linear", 0.09f);
+        m_currentShader->setFloat("spotLight.quadratic", 0.032f);
+        m_currentShader->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        m_currentShader->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
     }
 
     void DrawBatch(const RenderBatch& batch) {
@@ -176,7 +208,7 @@ private:
         
         // Render all commands in this batch
         for (const RenderCommand* command : batch.commands) {
-            RenderCommand(*command);
+            DrawCommand(*command);
         }
     }
 
@@ -185,26 +217,58 @@ private:
         if (!material) return;
         
         // Set material properties
-        m_currentShader->setVec3("material.diffuse", material->diffuse);
-        m_currentShader->setFloat("material.metallic", material->metallic);
-        m_currentShader->setFloat("material.roughness", material->roughness);
-        m_currentShader->setFloat("material.ao", material->ao);
+        //m_currentShader->setVec3("material.diffuse", material->diffuse);
+        //m_currentShader->setFloat("material.metallic", material->metallic);
+        //m_currentShader->setFloat("material.roughness", material->roughness);
+        //m_currentShader->setFloat("material.ao", material->ao);
+        m_currentShader->setFloat("material.shininess", 32.0f);
         
         // Bind textures
-        int textureUnit = 0;
-        
+        // Bind diffuse texture to texture unit 0
         if (material->diffuseTexture != INVALID_TEXTURE) {
             GPUTexture* gpuTexture = m_gpuResourceManager->GetGPUTexture(material->diffuseTexture);
             if (gpuTexture) {
-                glActiveTexture(GL_TEXTURE0 + textureUnit);
+                glActiveTexture(GL_TEXTURE0);
                 glBindTexture(GL_TEXTURE_2D, gpuTexture->textureID);
-                m_currentShader->setInt("material.diffuse", textureUnit);
-                textureUnit++;
+                m_currentShader->setInt("material.texture_diffuse1", 0);
             }
         }
         
-        // TODO: Bind other textures (specular, normal, etc.)
-        // ... similar to diffuse
+        // Bind specular texture to texture unit 1
+        if (material->specularTexture != INVALID_TEXTURE) {
+            GPUTexture* gpuTexture = m_gpuResourceManager->GetGPUTexture(material->specularTexture);
+            if (gpuTexture) {
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, gpuTexture->textureID);
+                m_currentShader->setInt("material.texture_specular1", 1);
+            }
+        }
+    }
+
+    void DrawCommand(const RenderCommand& command) {
+        // Get model asset
+        const ModelAsset* model = m_assetManager->GetModel(command.modelID);
+        if (!model) return;
+        
+        // Set per-object uniforms
+        m_currentShader->setMat4("model", command.worldMatrix);
+        m_currentShader->setMat4("normalMatrix", command.normalMatrix);
+        
+        // Render all meshes in the model
+        for (MeshID meshID : model->meshes) {
+            GPUMesh* gpuMesh = m_gpuResourceManager->GetGPUMesh(meshID);
+            if (!gpuMesh) continue;
+            
+            // Bind and draw
+            glBindVertexArray(gpuMesh->VAO);
+            glDrawElements(GL_TRIANGLES, gpuMesh->indexCount, GL_UNSIGNED_INT, 0);
+            
+            // Update statistics
+            m_drawCalls++;
+            m_trianglesRendered += gpuMesh->indexCount / 3;
+        }
+        
+        glBindVertexArray(0);
     }
 
     bool IsTransparent(const Material& material) {

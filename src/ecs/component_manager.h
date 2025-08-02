@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "defines.h"
+#include "rendering/renderer.h"
 
 // Entity ID type
 using EntityID = u32;
@@ -106,6 +107,9 @@ private:
 
 // Render system - processes renderable entities
 class RenderSystem: public System{
+private:
+    Renderer* m_renderer;
 public:
+    RenderSystem(Renderer* renderer): m_renderer(renderer){}
     void Update(ComponentManager& componentManager, f32 deltaTime) override;
 };

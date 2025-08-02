@@ -4,10 +4,15 @@ Scene::Scene()
 {
     // Register systems
     m_systems.push_back(std::make_unique<TransformSystem>());
-    m_systems.push_back(std::make_unique<RenderSystem>());
+    //m_systems.push_back(std::make_unique<RenderSystem>());
 }
 
-EntityID Scene::CreateRenderableObject(u32 modelID, u32 materialID, const glm::vec3 &position)
+void Scene::AddSystem(std::unique_ptr<System> system)
+{
+    m_systems.push_back(std::move(system));
+}
+
+EntityID Scene::CreateRenderableObject(std::string name, u32 modelID, u32 materialID, const glm::vec3 &position)
 {
     EntityID entity = m_componentManager.CreateEntity();
 
@@ -20,6 +25,8 @@ EntityID Scene::CreateRenderableObject(u32 modelID, u32 materialID, const glm::v
     render.materialID = materialID;
     m_componentManager.AddRender(entity, render);
 
+    m_entitiesNames[name] = entity;
+
     return entity;
 }
 
@@ -29,4 +36,9 @@ void Scene::Update(float deltaTime)
     {
         system->Update(m_componentManager, deltaTime);
     }
+}
+
+EntityID Scene::GetEntityByName(std::string name)
+{
+    return m_entitiesNames[name];
 }

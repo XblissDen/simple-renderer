@@ -134,10 +134,15 @@ void RenderSystem::Update(ComponentManager &componentManager, f32 deltaTime)
         TransformComponent *transform = componentManager.GetTransform(entity);
         RenderComponent *render = componentManager.GetRender(entity);
 
-        if (render->isVisible)
-        {
-            // Submit to render queue with transform->worldMatrix
-            // and render->modelID, render->materialID
-        }
+        if (!render->isVisible) continue;
+
+        RenderCommand command;
+        command.worldMatrix = transform->worldMatrix;
+        command.normalMatrix = glm::transpose(glm::inverse(transform->worldMatrix));
+        command.modelID = render->modelID;
+        command.materialID = render->materialID;
+        command.entityID = entity;
+
+        m_renderer->SubmitRenderCommand(command);
     }
 }

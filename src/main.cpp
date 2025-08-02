@@ -364,11 +364,33 @@ int main( void ) {
 
   // draw as wireframe
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  Scene scene;
+  
+  // CREATE CORE SYSTEMS
   AssetManager assetManager;
+  GPUResourceManager gpuManager(&assetManager);
+  Renderer renderer(&assetManager, &gpuManager);
+
+  // CREATE SCENE WITH ECS
+  Scene scene;
+  scene.AddSystem(std::make_unique<RenderSystem>(&renderer));
 
   // Load a model
   ModelAssetID backpackModel = assetManager.LoadModel("../assets/models/backpack/backpack.obj");
+  if (backpackModel == INVALID_MODEL) {
+        std::cout << "Failed to load model!" << std::endl;
+        return -1;
+    }
+
+  EntityID backpackEntity = scene.CreateRenderableObject(
+        "backpack",
+        backpackModel,           // Model to render
+        2,     // Material to use
+        glm::vec3(0.0f, 0.0f, -1.0f)  // Position in world
+  );
+
+  printf("backpack entity: %d", scene.GetEntityByName("backpack"));
+  // Create a basic material
+  //MaterialID defaultMaterial = assetManager.CreateMaterial("default");
   
   //printf("backpack materials: %d", assetManager.GetMaterial(2)->specularTexture);
 
@@ -411,6 +433,7 @@ int main( void ) {
       ImGui::SameLine();
       ImGui::Text("counter = %d", counter);
       ImGui::Text("Loaded: %d models, %d vertices", assetManager.GetStats().modelsLoaded, assetManager.GetStats().totalVertices);
+      ImGui::Text("Draw calls: %d, triangles: %d", renderer.GetDrawCalls(), renderer.GetTrianglesRendered());
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
       //ImGui::Text("Vertices loaded %d Triangles loaded %d", numVerticesLoaded, numTrianglesLoaded);
@@ -434,6 +457,11 @@ int main( void ) {
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
+    renderer.SetCamera(view, projection, camera.Position);
+
+    scene.Update(deltaTime);
+
+    renderer.RenderFrame();
     //GOManager.update();
     //GOManager.render(view, projection);
 

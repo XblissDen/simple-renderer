@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-#define STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <assimp/Importer.hpp>
@@ -12,10 +12,6 @@
 #include <assimp/postprocess.h>
 
 #include "defines.h"
-
-// Forward declarations
-//struct Vertex;
-//struct Texture;
 
 struct Vertex {
     glm::vec3 Position;
@@ -378,8 +374,8 @@ private:
         
         // Update statistics
         m_stats.meshesLoaded++;
-        m_stats.totalVertices += mesh.vertices.size();
-        m_stats.totalTriangles += mesh.indices.size() / 3;
+        m_stats.totalVertices += static_cast<u32>(mesh.vertices.size());
+        m_stats.totalTriangles += static_cast<u32>(mesh.indices.size() / 3);
         m_stats.memoryUsed += mesh.vertices.size() * sizeof(Vertex);
         m_stats.memoryUsed += mesh.indices.size() * sizeof(uint32_t);
         

@@ -40,6 +40,7 @@ set(SOURCES
     #src/GameObject/GameObject.cpp
     src/ecs/component_manager.cpp
     src/ecs/scene.cpp
+    src/stb_impl.cpp
     #src/AssetManager/AssetManager.cpp
 
     libs/glad/src/gl.c

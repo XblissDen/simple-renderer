@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "ecs/component_manager.h"
 #include "assets/asset_manager.h"  
 #include "shader.h"
 #include "defines.h"
@@ -58,7 +59,7 @@ struct RenderCommand{
     bool receiveShadows = true;
 
     // Optional entity reference (for debugging)
-    EntityID entityID = INVALID_ENTITY;
+    u32 entityID = 0;
 };
 
 // Render batch - multiple objects with same material
@@ -205,7 +206,7 @@ private:
         glBindVertexArray(0);
 
         // Store info
-        gpuMesh.indexCount = meshData.indices.size();
+        gpuMesh.indexCount = static_cast<u32>(meshData.indices.size());
         gpuMesh.isUploaded = true;
 
         // Update statistics

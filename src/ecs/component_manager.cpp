@@ -117,7 +117,12 @@ void TransformSystem::Update(ComponentManager &componentManager, f32 deltaTime)
 void TransformSystem::UpdateWorldMatrix(TransformComponent &transform)
 {
     glm::mat4 translation = glm::translate(glm::mat4(1.0f), transform.position);
-    glm::mat4 rotation = glm::mat4(1.0f); // Add rotation logic here
+
+    glm::mat4 rotation = glm::mat4(1.0f);
+    rotation = glm::rotate(rotation, glm::radians(transform.rotation.x), glm::vec3(1.0f, 0, 0));
+    rotation = glm::rotate(rotation, glm::radians(transform.rotation.y), glm::vec3(0, 1.0f, 0));
+    rotation = glm::rotate(rotation, glm::radians(transform.rotation.z), glm::vec3(0, 0, 1.0f));
+    
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), transform.scale);
 
     transform.worldMatrix = translation * rotation * scale;

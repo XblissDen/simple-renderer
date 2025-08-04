@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdio.h>
+#include <optional>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -373,6 +374,7 @@ int main( void ) {
   // CREATE SCENE WITH ECS
   Scene scene;
   scene.AddSystem(std::make_unique<RenderSystem>(&renderer));
+  //scene.AddSystem(std::make_unique<TransformSystem>());
 
   // Load a model
   ModelAssetID backpackModel = assetManager.LoadModel("../assets/models/backpack/backpack.obj");
@@ -393,6 +395,8 @@ int main( void ) {
   //MaterialID defaultMaterial = assetManager.CreateMaterial("default");
   
   //printf("backpack materials: %d", assetManager.GetMaterial(2)->specularTexture);
+
+  std::optional<int> selectedEntityId;
 
   while ( !glfwWindowShouldClose( window ) ) 
   {
@@ -417,28 +421,67 @@ int main( void ) {
     ImGui::NewFrame();
 
     {
-      static float f = 0.0f;
-      static int counter = 0;
-
-      ImGui::Begin("Hello, world!"); // Create a window called "Hello, world!" and append into it.
-
-      ImGui::Text("This is some useful text."); // Display some text (you can use a format strings too)
-
-      ImGui::SliderFloat("float", &f, 0.0f, 1.0f); // Edit 1 float using a slider from 0.0f to 1.0f
-      //ImGui::DragFloat3("position", glm::value_ptr(GOManager.getGameObject("Backpack")->position), 0.01f);
-      //ImGui::DragFloat3("rotation", glm::value_ptr(GOManager.getGameObject("Backpack")->rotation), 0.01f);
-      //ImGui::DragFloat3("scale", glm::value_ptr(GOManager.getGameObject("Backpack")->scale), 0.01f);
-      if (ImGui::Button("Button")) // Buttons return true when clicked (most widgets return true when edited/activated)
-        counter++;
-      ImGui::SameLine();
-      ImGui::Text("counter = %d", counter);
+      ImGui::Begin("Statistics");
+    
       ImGui::Text("Loaded: %d models, %d vertices", assetManager.GetStats().modelsLoaded, assetManager.GetStats().totalVertices);
       ImGui::Text("Draw calls: %d, triangles: %d", renderer.GetDrawCalls(), renderer.GetTrianglesRendered());
 
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-      //ImGui::Text("Vertices loaded %d Triangles loaded %d", numVerticesLoaded, numTrianglesLoaded);
+      
       ImGui::End();
     }
+
+    {
+      ImGui::Begin("Entity Editor");
+
+      const char *comboPreviewValue = "Select Entity";
+      if (selectedEntityId.has_value())
+      {
+        comboPreviewValue = scene.GetNameOfEntity(selectedEntityId.value()).c_str();
+      }
+
+      if(ImGui::BeginCombo("##entity_selector", comboPreviewValue)){
+        for(const auto& pair: scene.GetEntitiesMap()){
+          const std::string& entityName = pair.first;
+          const int entityId = pair.second;
+
+          const bool isSelected = (selectedEntityId.has_value() && selectedEntityId.value() == entityId);
+
+          // This is the individual selectable item in the dropdown list.
+          if (ImGui::Selectable(entityName.c_str(), isSelected))
+          {
+            selectedEntityId = entityId; // Store the selected entity's ID
+          }
+
+          // Set initial focus when opening the combo box
+          if (isSelected)
+          {
+            ImGui::SetItemDefaultFocus();
+          }
+        }
+        ImGui::EndCombo();
+      }
+
+      // if an entity is selected
+      if(selectedEntityId.has_value()){
+        ImGui::Separator();
+        ImGui::Text("Selected Entity: %s, ID: %d", scene.GetNameOfEntity(selectedEntityId.value()).c_str(), selectedEntityId.value());
+
+        TransformComponent* transform = scene.GetComponentManager().GetTransform(selectedEntityId.value());
+        if(ImGui::DragFloat3("Position", glm::value_ptr(transform->position), 0.1f)){
+          transform->isDirty = true;
+        }
+        if(ImGui::DragFloat3("Rotation", glm::value_ptr(transform->rotation), 1.0f)){
+          transform->isDirty = true;
+        }
+        if(ImGui::DragFloat3("Scale", glm::value_ptr(transform->scale), 0.1f)){
+          transform->isDirty = true;
+        }
+      }
+
+      ImGui::End();
+    }
+
     ImGui::Render();
     // ==============
     // Dear ImGui END

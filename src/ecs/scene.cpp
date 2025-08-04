@@ -26,6 +26,7 @@ EntityID Scene::CreateRenderableObject(std::string name, u32 modelID, u32 materi
     m_componentManager.AddRender(entity, render);
 
     m_entitiesNames[name] = entity;
+    m_namesEntities[entity] = name;
 
     return entity;
 }
@@ -41,4 +42,9 @@ void Scene::Update(float deltaTime)
 EntityID Scene::GetEntityByName(std::string name)
 {
     return m_entitiesNames[name];
+}
+
+std::string Scene::GetNameOfEntity(int id)
+{
+    return m_namesEntities[id];
 }

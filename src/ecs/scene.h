@@ -13,6 +13,7 @@ private:
     ComponentManager m_componentManager;
     std::vector<std::unique_ptr<System>> m_systems;
     std::unordered_map<std::string, EntityID> m_entitiesNames;
+    std::unordered_map<EntityID, std::string> m_namesEntities;
 
 public:
     Scene();
@@ -23,5 +24,7 @@ public:
     void Update(float deltaTime);
 
     EntityID GetEntityByName(std::string name);
+    std::string Scene::GetNameOfEntity(int id);
     ComponentManager& GetComponentManager() { return m_componentManager; }
+    std::unordered_map<std::string, EntityID>& GetEntitiesMap() { return m_entitiesNames; }
 };

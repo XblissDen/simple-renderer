@@ -183,13 +183,13 @@ public:
 
         // Process all materials first
         ProcessMaterials(scene, directory, model);
-
+        //printf("MATERIALS PROCESSED \n");
         // Process all meshes
         ProcessNode(scene->mRootNode, scene, model);
-
+        //printf("NODES PROCESSED \n");
         // Calculate model bound
         CalculateModelBounds(model);
-
+        //printf("MODEL BOUNDS CALCULATED \n");
         // Cache the loaded model
         m_modelPathMap[path] = modelID;
         m_stats.modelsLoaded++;
@@ -277,12 +277,15 @@ public:
 
 private:
     void ProcessMaterials(const aiScene* scene, const std::string& directory, ModelAsset& model){
-        printf("num materials %d", scene->mNumMaterials);
+        
         for (size_t i = 0; i < scene->mNumMaterials; i++)
         {
             aiMaterial* aiMat = scene->mMaterials[i];
 
-            MaterialID materialID = CreateMaterial();
+            aiString name;
+            aiMat->Get(AI_MATKEY_NAME, name);
+
+            MaterialID materialID = CreateMaterial(name.C_Str());
             Material& material = m_materials[materialID];
 
             // Load material properties
@@ -399,6 +402,10 @@ private:
             case aiTextureType_DIFFUSE: return "diffuse";
             case aiTextureType_SPECULAR: return "specular";
             case aiTextureType_NORMALS: return "normal";
+            case aiTextureType_NORMAL_CAMERA: return "normal";
+            case aiTextureType_METALNESS: return "metallic";
+            case aiTextureType_DIFFUSE_ROUGHNESS: return "roughness";
+            case aiTextureType_AMBIENT_OCCLUSION: return "ao";
             case aiTextureType_HEIGHT: return "height";
             default: return "unknown";
         }

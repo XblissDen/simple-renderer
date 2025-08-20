@@ -176,120 +176,6 @@ int main( void ) {
   printf( "Renderer: %s.\n", glGetString( GL_RENDERER ) );
   printf( "OpenGL version supported %s.\n", glGetString( GL_VERSION ) );
 
-  float cubeVertices[] = {
-      //positions         //normals           //texture coords
-      // Back face
-     -0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
-      0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 1.0f,   // top-right
-      0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 0.0f,  // bottom-right
-      0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 1.0f, 1.0f,   // top-right
-     -0.5f, -0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-     -0.5f,  0.5f, -0.5f, 0.0f,  0.0f, -1.0f, 0.0f, 1.0f,  // top-left
-      // Front face
-     -0.5f, -0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 0.0f, // bottom-left
-      0.5f, -0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 0.0f,  // bottom-right
-      0.5f,  0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 1.0f,   // top-right
-      0.5f,  0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  1.0f, 1.0f,   // top-right
-     -0.5f,  0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 1.0f,  // top-left
-     -0.5f, -0.5f, 0.5f,  0.0f,  0.0f, 1.0f,  0.0f, 0.0f, // bottom-left
-      // Left face
-     -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,   // top-right
-     -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,  // top-left
-     -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-     -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-     -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,  // bottom-right
-     -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,   // top-right
-      // Right face
-      0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 0.0f,    // top-left
-      0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  // bottom-right
-      0.5f,  0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 1.0f,   // top-right
-      0.5f, -0.5f, -0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  // bottom-right
-      0.5f,  0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 1.0f, 0.0f,    // top-left
-      0.5f, -0.5f,  0.5f, 1.0f,  0.0f,  0.0f, 0.0f, 0.0f,   // bottom-left
-      // Bottom face
-      -0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-       0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 1.0f,  // top-left
-       0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,   // bottom-left
-       0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f,   // bottom-left
-      -0.5f, -0.5f,  0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 0.0f,  // bottom-right
-      -0.5f, -0.5f, -0.5f, 0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-      // Top face
-      -0.5f, 0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-       0.5f, 0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   // bottom-right
-       0.5f, 0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 1.0f,  // top-right
-       0.5f, 0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   // bottom-right
-      -0.5f, 0.5f, -0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-      -0.5f, 0.5f,  0.5f, 0.0f,  1.0f,  0.0f, 0.0f, 0.0f   // bottom-left
-  };
-
-  unsigned int indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
-  };
-  
-  glm::vec3 cubePositions[] = {
-      glm::vec3( 0.0f,  0.0f,  0.0f),
-      glm::vec3( 2.0f,  5.0f, -15.0f),
-      glm::vec3(-1.5f, -2.2f, -2.5f),
-      glm::vec3(-3.8f, -2.0f, -12.3f),
-      glm::vec3( 2.4f, -0.4f, -3.5f),
-      glm::vec3(-1.7f,  3.0f, -7.5f),
-      glm::vec3( 1.3f, -2.0f, -2.5f),
-      glm::vec3( 1.5f,  2.0f, -2.5f),
-      glm::vec3( 1.5f,  0.2f, -1.5f),
-      glm::vec3(-1.3f,  1.0f, -1.5f)
-  };
-
-  float quadVertices[] = {  
-    // positions   // texCoords
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-
-    -1.0f,  1.0f,  0.0f, 1.0f,
-     1.0f, -1.0f,  1.0f, 0.0f,
-     1.0f,  1.0f,  1.0f, 1.0f
-  };	
-
-  unsigned int VBO, cubeVAO;
-  glGenVertexArrays(1, &cubeVAO);
-  glGenBuffers(1, &VBO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-
-  glBindVertexArray(cubeVAO);
-
-  // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-
-  // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
-  unsigned int lightCubeVAO;
-  glGenVertexArrays(1, &lightCubeVAO);
-  glBindVertexArray(lightCubeVAO);
-
-  // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  
-  /*unsigned int ebo;
-  glGenBuffers(1, &ebo);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);*/
-
-  // load textures (we now use a utility function to keep the code more organized)
-  // -----------------------------------------------------------------------------
-  /*unsigned int diffuseMap = TextureFromFile("../assets/textures/container2.png");
-  unsigned int specularMap = TextureFromFile("../assets/textures/container2_specular.png");*/
-
   double prev_s = glfwGetTime();  // Set the initial 'previous time'.
   double title_countdown_s = 0.2;
 
@@ -333,35 +219,8 @@ int main( void ) {
     std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  // screen quad VAO
-  unsigned int quadVAO, quadVBO;
-  glGenVertexArrays(1, &quadVAO);
-  glGenBuffers(1, &quadVBO);
-  glBindVertexArray(quadVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
-
   //Shader lightingShader("lighting.vert", "lighting.frag");
   Shader lightCubeShader("lightCube.vert", "lightCube.frag");
-  
-  // load models
-  // -----------
-  Shader modelShader("modelShader.vert", "modelShader.frag");
-  Shader screenShader("framebuffers_screen.vert", "framebuffers_screen.frag");
-
-  screenShader.use();
-  screenShader.setInt("screenTexture", 0);
-  //Shader singleColorShader("modelShader.vert", "shaderSingleColor.frag");
-  //Model ourModel("../assets/models/backpack/backpack.obj");
-
-  //GameObjectManager GOManager;
-  //GOManager.createGameObject("Backpack", &modelShader, &ourModel);
-
-  //printf("GO: %s %i", GOManager.getGameObject("Backpack")->Name.c_str(), GOManager.getGameObject("Backpack")->id);
 
   // draw as wireframe
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -381,13 +240,44 @@ int main( void ) {
   if (backpackModel == INVALID_MODEL) {
         std::cout << "Failed to load model!" << std::endl;
         return -1;
-    }
+  }
+
+  ModelAssetID cubeModel = assetManager.LoadModel("../assets/models/cube.glb");
+  Assert(cubeModel != INVALID_MODEL, "Failed to load model!");
 
   EntityID backpackEntity = scene.CreateRenderableObject(
         "backpack",
         backpackModel,           // Model to render
         2,     // Material to use
         glm::vec3(0.0f, 0.0f, -1.0f)  // Position in world
+  );
+
+  EntityID e_lightCube1 = scene.CreateRenderableObject(
+        "lightCube1",
+        cubeModel,           // Model to render
+        4,     // Material to use
+        pointLightPositions[0]  // Position in world
+  );
+
+  EntityID e_lightCube2 = scene.CreateRenderableObject(
+        "lightCube2",
+        cubeModel,           // Model to render
+        4,     // Material to use
+        pointLightPositions[1]  // Position in world
+  );
+
+  EntityID e_lightCube3 = scene.CreateRenderableObject(
+        "lightCube3",
+        cubeModel,           // Model to render
+        4,     // Material to use
+        pointLightPositions[2]  // Position in world
+  );
+
+  EntityID e_lightCube4 = scene.CreateRenderableObject(
+        "lightCube4",
+        cubeModel,           // Model to render
+        4,     // Material to use
+        pointLightPositions[3]  // Position in world
   );
 
   printf("backpack entity: %d", scene.GetEntityByName("backpack"));
@@ -489,9 +379,7 @@ int main( void ) {
 
     // RENDER
     // ------
-    // bind to framebuffer and draw scene as we normally would to color texture
-    //glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+    glEnable(GL_DEPTH_TEST);
 
     glClearColor( 0.1f, 0.1f, 0.1f, 1.0f);
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT /*| GL_STENCIL_BUFFER_BIT*/ );
@@ -505,56 +393,13 @@ int main( void ) {
     scene.Update(deltaTime);
 
     renderer.RenderFrame();
-    //GOManager.update();
-    //GOManager.render(view, projection);
-
-    // also draw the lamp object(s)
-    lightCubeShader.use();
-    lightCubeShader.setMat4("projection", projection);
-    lightCubeShader.setMat4("view", view);
-
-    // we now draw as many light bulbs as we have point lights.
-    glBindVertexArray(lightCubeVAO);
-    for (unsigned int i = 0; i < 4; i++)
-    {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, pointLightPositions[i]);
-        model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
-        lightCubeShader.setMat4("model", model);
-        lightCubeShader.setVec3("lightColor", pointLightColors[i]);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-    }
-    model = glm::mat4(1.0f);
-    model = glm::translate(model, lightPos);
-    model = glm::scale(model, glm::vec3(0.2f));
-    lightCubeShader.setMat4("model", model);
-    lightCubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
-    /*// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
-    // clear all relevant buffers
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    screenShader.use();
-    glBindVertexArray(quadVAO);
-    glBindTexture(GL_TEXTURE_2D, textureColorbuffer); // use the color attachment texture as the texture of the quad plane
-    glDrawArrays(GL_TRIANGLES, 0, 6);*/
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     // Put the stuff we've been drawing onto the visible area.
     glfwSwapBuffers( window );
     
   }
-  // de-allocate all resources once they've outlived their purpose:
-  glDeleteVertexArrays(1, &cubeVAO);
-  glDeleteVertexArrays(1, &lightCubeVAO);
-  glDeleteBuffers(1, &VBO);
 
-  glDeleteVertexArrays(1, &quadVAO);
-  glDeleteBuffers(1, &quadVBO);
   glDeleteRenderbuffers(1, &rbo);
   glDeleteFramebuffers(1, &framebuffer);
 
